@@ -1,0 +1,58 @@
+file này setup một validator với lượng token được cấp nhỏ.
+sau khi chay add-valaidator.sh
+lay id ra dien vao docker-compose.validator.yml
+chay: docker-compose -f docker-compose.validator.yml up -d celestia-validator3
+wait 10s
+
+----- Nap tien cho vi valaidator3 -------
+ADDR3=$(docker exec celestia-validator3 celestia-appd keys show validator3 -a --keyring-backend test)
+echo $ADDR3
+ADDR1=$(docker exec celestia-validator-astar celestia-appd keys show validator1 -a --keyring-backend test)
+
+docker exec -it celestia-validator-astar celestia-appd tx bank send \
+  $ADDR1 $ADDR3 10000000utia \
+  --chain-id private \
+  --keyring-backend test \
+  --fees 5000utia \
+  -y
+
+
+----- tao validator --------
+
+----tao file cau hinh validator.json -----
+# 1. Lấy PubKey chuẩn JSON từ Node 3
+PUBKEY3=$(docker exec celestia-validator3 celestia-appd tendermint show-validator)
+
+# 2. Tạo file validator.json trên máy chủ
+cat <<EOF > validator.json
+{
+  "pubkey": $PUBKEY3,
+  "amount": "5000000utia",
+  "moniker": "Node3",
+  "identity": "",
+  "website": "",
+  "security": "",
+  "details": "Validator Node 3",
+  "commission-rate": "0.10",
+  "commission-max-rate": "0.20",
+  "commission-max-change-rate": "0.01",
+  "min-self-delegation": "1"
+}
+EOF
+
+---copy file vao container node 3 ----
+docker cp validator.json celestia-validator3:/home/celestia/validator.json
+
+---chạy create validator ----
+docker exec -it celestia-validator3 celestia-appd tx staking create-validator \
+  /home/celestia/validator.json \
+  --from=validator3 \
+  --chain-id=private \
+  --keyring-backend=test \
+  --fees=5000utia \
+  -y
+
+
+
+-----check ----------
+docker exec celestia-validator-astar celestia-appd q staking validators

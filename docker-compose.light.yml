@@ -1,0 +1,57 @@
+services:
+  celestia-light1:
+    image: ghcr.io/celestiaorg/celestia-node:v0.28.5-mocha
+    container_name: celestia-light1
+    environment:
+      - P2P_NETWORK=private
+      - USER_ID=0
+    user: "0:0"
+    volumes:
+      - ./celes-light1:/home/celestia
+    ports:
+      - "26760:26658"
+    entrypoint: [""]
+    command: >
+      celestia light start
+      --node.store /home/celestia
+      --p2p.network private
+      --rpc.addr 0.0.0.0
+      --rpc.port 26658
+      --core.ip celestia-validator-astar
+      --core.port 9090
+      --keyring.backend test
+      --metrics.endpoint 0.0.0.0:26658
+      --headers.trusted-peers /dns/celestia-bridge1/tcp/2121/p2p/12D3KooWNUDia8xwLEbikKBdCDH2dua8RH6tdifDuJShQmiza15B
+    networks:
+      - celestia-network
+
+  celestia-light2:
+    image: ghcr.io/celestiaorg/celestia-node:v0.28.5-mocha
+    container_name: celestia-light2
+    environment:
+      - P2P_NETWORK=private
+      - USER_ID=0
+    user: "0:0"
+    volumes:
+      - ./celes-light2:/home/celestia
+    ports:
+      - "26761:26658"
+    entrypoint: [""]
+    command: >
+      celestia light start
+      --node.store /home/celestia
+      --p2p.network private
+      --rpc.addr 0.0.0.0
+      --rpc.port 26658
+      --core.ip celestia-validator-astar
+      --core.port 9090
+      --keyring.backend test
+      --metrics.endpoint 0.0.0.0:26658
+      --headers.trusted-peers /dns/celestia-bridge1/tcp/2121/p2p/12D3KooWNUDia8xwLEbikKBdCDH2dua8RH6tdifDuJShQmiza15B
+    networks:
+      - celestia-network
+
+networks:
+  celestia-network:
+    external: true
+    name: celestia-shared

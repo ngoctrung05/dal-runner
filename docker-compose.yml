@@ -1,0 +1,207 @@
+# version: "3.8"
+# services:
+#   celestia-validator-astar:
+#     image: ghcr.io/celestiaorg/celestia-app:v6.4.3-mocha
+#     container_name: celestia-validator-astar
+#     volumes:
+#       - ./consensus/celestia-validator:/home/celestia/.celestia-app
+#     ports:
+#       - "9190:9090"
+#       - "26756:26656"
+#       - "26757:26657"
+#       - "26660:26660"
+#     command:
+#       - "start"
+#       - "--force-no-bbr"
+#       - "--grpc.enable"
+#       - "--grpc.address=0.0.0.0:9090"
+#       - "--rpc.laddr=tcp://0.0.0.0:26657"
+#       - "--minimum-gas-prices=0utia"
+#     networks:
+#       - celestia-network
+
+#   celestia-validator-astar3:
+#     image: ghcr.io/celestiaorg/celestia-app:v6.4.3-mocha
+#     user: root
+#     container_name: celestia-validator3
+#     volumes:
+#       - ./consensus/celestia-validator3:/home/celestia/.celestia-app
+#     ports:
+#       - "29090:9090"
+#       - "26666:26656"
+#       - "26667:26657"
+#       - "26661:26660"
+#     command:
+#       - start
+#       - --force-no-bbr
+#       - --grpc.enable
+#       - --grpc.address=0.0.0.0:9090
+#       - --rpc.laddr=tcp://0.0.0.0:26657
+#       - --minimum-gas-prices=0utia
+#     networks:
+#       - celestia-network
+
+#   celestia-bridge1:
+#     image: ghcr.io/celestiaorg/celestia-node:v0.28.5-mocha
+#     container_name: celestia-bridge1
+#     environment:
+#       - P2P_NETWORK=private
+#     volumes:
+#       - ./celes-bridge1:/home/celestia
+#     ports:
+#       - "26758:26658"
+#       - "2221:2121"
+#     command: >
+#       celestia bridge start
+#       --p2p.network private
+#       --core.ip celestia-validator-astar
+#       --rpc.addr 0.0.0.0
+#       --rpc.port 26658
+#       --metrics.endpoint 0.0.0.0:26658
+#     depends_on:
+#       - celestia-validator-astar
+#     networks:
+#       - celestia-network
+
+#   celestia-bridge2:
+#     image: ghcr.io/celestiaorg/celestia-node:v0.28.5-mocha
+#     container_name: celestia-bridge2
+#     environment:
+#       - P2P_NETWORK=private
+#     volumes:
+#       - ./celes-bridge2:/home/celestia
+#     ports:
+#       - "26759:26658"
+#     command: >
+#       celestia bridge start
+#       --p2p.network private
+#       --core.ip celestia-validator-astar
+#       --rpc.addr 0.0.0.0
+#       --rpc.port 26658
+#       --metrics.endpoint 0.0.0.0:26658
+#     depends_on:
+#       - celestia-validator-astar3
+#     networks:
+#       - celestia-network
+
+#   celestia-light1:
+#     image: ghcr.io/celestiaorg/celestia-node:v0.28.5-mocha
+#     container_name: celestia-light1
+#     environment:
+#       - P2P_NETWORK=private
+#     volumes:
+#       - ./celes-light1:/home/celestia
+#     ports:
+#       - "26760:26658"
+#     # Dùng bash để kiểm tra init trước khi start
+#     entrypoint: ["/bin/bash", "-c"]
+#     command: >
+#       "if [ ! -f /home/celestia/config.toml ]; then
+#         celestia light init --p2p.network private --keyring.backend test;
+#       fi;
+#       celestia light start
+#       --p2p.network private
+#       --headers.trusted-peers /dns/celestia-bridge1/tcp/2121/p2p/12D3KooWE8zKz92zSQJwz1zeouF5eumYUKnbJNXQkkpwTsP9DAQp
+#       --p2p.mutual /dns4/celestia-bridge1/tcp/2121/p2p/12D3KooWE8zKz92zSQJwz1zeouF5eumYUKnbJNXQkkpwTsP9DAQp
+#       --rpc.addr 0.0.0.0
+#       --rpc.port 26658
+#       --metrics.endpoint 0.0.0.0:26658
+#       --core.ip celestia-validator-astar
+#       --core.port 9090
+#       --keyring.backend test
+#       --node.store /home/celestia"
+#     depends_on:
+#       - celestia-bridge1
+#       - celestia-validator-astar
+#     networks:
+#       - celestia-network
+
+#   celestia-light2:
+#     image: ghcr.io/celestiaorg/celestia-node:v0.28.5-mocha
+#     container_name: celestia-light2
+#     environment:
+#       - P2P_NETWORK=private
+#     volumes:
+#       - ./celes-light2:/home/celestia
+#     ports:
+#       - "26761:26658"
+#     entrypoint: ["/bin/bash", "-c"]
+#     command: >
+#       "if [ ! -f /home/celestia/config.toml ]; then
+#         celestia light init --p2p.network private --keyring.backend test;
+#       fi;
+#       celestia light start
+#       --p2p.network private
+#       --headers.trusted-peers /dns/celestia-bridge2/tcp/2121/p2p/12D3KooWSmJDbjGLxQ2WXw9Hwj5koFWdRqTixFNsMsLw5EtAZ1D7
+#       --rpc.addr 0.0.0.0
+#       --rpc.port 26658
+#       --metrics.endpoint 0.0.0.0:26658
+#       --keyring.backend test
+#       --node.store /home/celestia"
+#     depends_on:
+#       - celestia-bridge2
+#     networks:
+#       - celestia-network
+
+#   celestia-light3:
+#     image: ghcr.io/celestiaorg/celestia-node:v0.28.5-mocha
+#     container_name: celestia-light3
+#     environment:
+#       - P2P_NETWORK=private
+#     volumes:
+#       - ./celes-light3:/home/celestia
+#     ports:
+#       - "26764:26658"
+#     entrypoint: ["/bin/bash", "-c"]
+#     command: >
+#       "if [ ! -f /home/celestia/config.toml ]; then
+#         celestia light init --p2p.network private --keyring.backend test;
+#       fi;
+#       celestia light start
+#       --p2p.network private
+#       --headers.trusted-peers /dns/celestia-full/tcp/2121/p2p/12D3KooWRkCdpWEshpYqs89GAAEdL1hSYYkehRQjuL6nyyPMoGwq
+#       --rpc.addr 0.0.0.0
+#       --rpc.port 26658
+#       --metrics.endpoint 0.0.0.0:26658
+#       --keyring.backend test
+#       --node.store /home/celestia"
+#     networks:
+#       - celestia-network
+
+#   # --- Monitoring --- #
+#   # cadvisor:
+#   #   image: gcr.io/cadvisor/cadvisor:latest
+#   #   container_name: cadvisor
+#   #   ports:
+#   #     - "8080:8080"
+#   #   volumes:
+#   #     - /:/rootfs:ro
+#   #     - /var/run:/var/run:ro
+#   #     - /sys:/sys:ro
+#   #     - /var/lib/docker/:/var/lib/docker:ro
+#   #   devices:
+#   #     - /dev/kmsg
+
+#   # # 2. Prometheus: Lưu trữ dữ liệu từ cAdvisor
+#   # prometheus:
+#   #   image: prom/prometheus:latest
+#   #   container_name: prometheus
+#   #   ports:
+#   #     - "9091:9090"
+#   #   volumes:
+#   #     - ./prometheus.yml:/etc/prometheus/prometheus.yml
+#   #   command:
+#   #     - '--config.file=/etc/prometheus/prometheus.yml'
+
+#   # # 3. Grafana: Vẽ biểu đồ đẹp
+#   # grafana:
+#   #   image: grafana/grafana:latest
+#   #   container_name: grafana
+#   #   ports:
+#   #     - "3001:3000"
+#   #   environment:
+#   #     - GF_security_admin_password=admin
+
+# networks:
+#   celestia-network:
+#     driver: bridge

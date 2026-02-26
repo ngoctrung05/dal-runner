@@ -1,0 +1,12 @@
+scrape_configs:
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+  - job_name: 'celestia-validator'
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['celestia-validator-astar:26660'] # Cổng metrics mặc định của CosmosSDK
+  # - job_name: 'celestia-bridge'
+  #   metrics_path: /metrics
+  #   static_configs:
+  #     - targets: ['celestia-bridge1:26658'] # Cần enable metrics flag trên node

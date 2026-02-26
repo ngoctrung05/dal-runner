@@ -1,0 +1,51 @@
+version: "3.8"
+
+services:
+  celestia-bridge1:
+    image: ghcr.io/celestiaorg/celestia-node:v0.28.5-mocha
+    container_name: celestia-bridge1
+    environment:
+      - P2P_NETWORK=private
+    volumes:
+      - ./celes-bridge1:/home/celestia
+    ports:
+      - "26758:26658"
+      - "2221:2121"
+      - "26558:26558"
+    command: >
+      celestia bridge start
+      --p2p.network private
+      --core.ip celestia-validator-astar
+      --rpc.addr 0.0.0.0
+      --rpc.port 26658
+      --metrics.endpoint 0.0.0.0:26558
+    networks:
+      - celestia-network
+
+  celestia-bridge2:
+    image: ghcr.io/celestiaorg/celestia-node:v0.28.5-mocha
+    container_name: celestia-bridge2
+    environment:
+      - P2P_NETWORK=private
+    volumes:
+      - ./celes-bridge2:/home/celestia
+    ports:
+      - "26759:26658"
+      - "26559:26559"
+    depends_on:
+      - celestia-bridge1
+    command: >
+      celestia bridge start
+      --p2p.network private
+      --core.ip celestia-validator-astar
+      --rpc.addr 0.0.0.0
+      --rpc.port 26658
+      --metrics.endpoint 0.0.0.0:26559
+      --p2p.mutual /dns4/celestia-bridge1/tcp/2121/p2p/12D3KooWNUDia8xwLEbikKBdCDH2dua8RH6tdifDuJShQmiza15B
+    networks:
+      - celestia-network
+
+networks:
+  celestia-network:
+    external: true
+    name: celestia-shared
